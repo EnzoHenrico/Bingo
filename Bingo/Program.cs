@@ -1,5 +1,5 @@
 ﻿// Preparação
-int playerCount = 0;
+int playerCount = 0, lineLength = 0, columnLength = 0;
 do
 {
     Console.Write("Quantidade de jogadores:");
@@ -13,20 +13,10 @@ do
 while (playerCount < 2);
 
 string[] playersNames = new string[playerCount];
+int[] playersCardCount = new int[playerCount];
 
-void logMatrix(int[,] iMatrix)
-{
-
-    for (int i = 0; i < iMatrix.Length; i++)
-    {
-        for (int j = 0; j < iMatrix.GetLength(i); j++)
-        {
-            Console.WriteLine(iMatrix[i,j]);
-        }
-    }
-}
-
-void setPlayersNames()
+// Funções
+void setPlayersNames(int playerCount)
 {
     for (int i = 0; i < playerCount; i++)
     {
@@ -50,11 +40,35 @@ void setPlayersNames()
     }
 }
 
-// test and log
-setPlayersNames();
-foreach (var item in playersNames)
+void setPlayesCardCount(int playersCount)
 {
-    Console.WriteLine(item);
+    int cardCount = 0;
+    for (int i = 0; i < playersCount; i++)
+    {
+        do
+        {
+            Console.Write($"Quantidade de cartelas do jogador {i}:");
+            cardCount = int.Parse(Console.ReadLine());
+
+            if (cardCount < 1)
+            {
+                Console.WriteLine("Pelo menos 1 cartela por jogador.\n");
+            }
+            else
+            {
+                playersCardCount[i] = cardCount;
+                break;
+            }
+        }
+        while (true);
+    }
+}
+// test and log
+setPlayersNames(playerCount);
+setPlayesCardCount(playerCount);
+for (int i = 0;i < playerCount;i++)
+{
+    Console.WriteLine($"{playersNames[i]} possui {playersCardCount[i]} cartelas.");
 }
 
 // Definição de cartelas
