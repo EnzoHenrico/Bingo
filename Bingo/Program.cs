@@ -1,5 +1,6 @@
-﻿int playersCount = 0; 
+﻿int playersCount = 0;
 int cardsCount = 0;
+int[] numbers = new int[99];
 
 do
 {
@@ -73,7 +74,6 @@ void printCard(int cardIndex)
     }
     Console.WriteLine();
 }
-
 int[,] populateCard(int[,] card)
 {
     int[] tempSequencialNumbers = new int[99];
@@ -86,10 +86,10 @@ int[,] populateCard(int[,] card)
     {
         for (int column = 0; column < 5; column++)
         {
-            int randomIndex = new Random().Next(0, 99);
+            int randomIndex = new Random().Next(1, 99);
             while (tempSequencialNumbers[randomIndex] == 0)
             {
-                randomIndex = new Random().Next(0, 99);
+                randomIndex = new Random().Next(1, 99);
             }
             card[line, column] = tempSequencialNumbers[randomIndex];
             tempSequencialNumbers[randomIndex] = 0;
@@ -99,7 +99,44 @@ int[,] populateCard(int[,] card)
     return card;
 }
 
+// Game
+void printNumbers(int[] numbers)
+{
+    Console.WriteLine();
+    for (int i = 0; i < numbers.Length; i++)
+    {
+        if (numbers[i] != 0)
+        { 
+            Console.Write($"{numbers[i]:00} ");
+        }
+    }
+    Console.WriteLine();
+}
+void resetNumbers()
+{
+    for (int i = 0; i < 99; i++)
+    {
+        numbers[i] = i + 1;
+    }
+}
+int drawUniqueNumber(int[] numbers)
+{
+    int drawnNumber = 0;
+    do
+    {
+        int randomNumber = new Random().Next(1, 100);
+        if (numbers[randomNumber] != 0)
+        {
+            drawnNumber = numbers[randomNumber];
+            numbers[randomNumber] = 0;
+            return drawnNumber;
+        }
+    }
+    while (drawnNumber == 0);
+    return drawnNumber;
+}
 
+// Init
 Console.WriteLine("\nCriar jogadores:");
 playersName = inputNewPlayersNames(playersCount);
 printPlayersList();
@@ -119,3 +156,8 @@ for (int player = 0; player < playersCount; player++)
     }
 }
 
+// Começo do jogo
+resetNumbers();
+printNumbers(numbers);
+
+Console.WriteLine("Número sortedo: " + drawUniqueNumber(numbers));
