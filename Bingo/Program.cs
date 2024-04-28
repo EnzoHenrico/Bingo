@@ -1,11 +1,8 @@
 ﻿// Atribuições independentes
-using System.Data.Common;
-
-int playersCount = 0, cardsCount = 0, lastCalledNumber = 0, round = 0;
-bool match = false, playerMatechedInRound = false, lineScore = false, columnScore = false;
+int numberOfPlayers = 0, numberOfCards = 0, lastCalledNumber = 0;
+bool score = false, lineScore = false, columnScore = false;
+bool scoredNumberThisRound = false, scoredLineThisRound = false, scoredColumnThisRound = false, bingoThisRound = false;
 bool canLineScore = true, canColumnScore = true, calledBingo = false;
-bool scoredLineThisRound = false, scoredColumnThisRound = false, bingoThisRound = false;
-int[] numbers = new int[99];
 
 // Solicita dados da partida
 Console.WriteLine("┌----------------------------------------┐");
@@ -13,49 +10,50 @@ Console.WriteLine("|                                        | ");
 Console.WriteLine("|  *  Bem vindo ao meu jogo de Bingo  *  |");
 Console.WriteLine("|                                        | ");
 Console.WriteLine("└----------------------------------------┘\n");
-getRequiredInfo();
+GetRequiredData();
 
 // Atribuições relativas a partida
-string[] playersName = new string[playersCount];
-int[] playersScore = new int[playersCount];
-int[][,] playersCard = new int[playersCount * cardsCount][,];
-int[][,] playersCardMask = new int[playersCount * cardsCount][,];
-int[,] cardsIndex = new int[playersCount, cardsCount];
+int[] numbersToBeDrawn = new int[99];
+string[] playerNames = new string[numberOfPlayers];
+int[][,] playerCards = new int[numberOfPlayers * numberOfCards][,];
+int[][,] playerCardsMask = new int[numberOfPlayers * numberOfCards][,];
+int[,] cardsIndexList = new int[numberOfPlayers, numberOfCards];
+int[] playerPoints = new int[numberOfPlayers];
 
-void getRequiredInfo()
+void GetRequiredData()
 {
     do
     { 
         Console.Write("Quantos jogadores vão participar? [   ]");
         (int left, int top) = Console.GetCursorPosition();
         Console.SetCursorPosition(left - 3, top);
-        playersCount = int.Parse(Console.ReadLine());
+        numberOfPlayers = int.Parse(Console.ReadLine());
 
-        if (playersCount < 2)
+        if (numberOfPlayers < 2)
         {
             Console.WriteLine("\n -- É necessário pelo menos 2 jogadores, tente novamente -- ");
         }
         Console.WriteLine();
-    } while (playersCount < 2);
+    } while (numberOfPlayers < 2);
     do
     {
         Console.Write("Quantas cartelas por jogador? [   ]");
         (int left, int top) = Console.GetCursorPosition();
         Console.SetCursorPosition(left - 3, top);
-        cardsCount = int.Parse(Console.ReadLine());
+        numberOfCards = int.Parse(Console.ReadLine());
 
-        if (cardsCount < 1)
+        if (numberOfCards < 1)
         {
             Console.WriteLine("\n -- É necessário pelo menos 1 cartela por jogador, tente novamente -- ");
         }
         Console.WriteLine();
     }
-    while (cardsCount < 1);
+    while (numberOfCards < 1);
 }
 
-void inputNewPlayersNames()
+void InputPlayerNames()
 {
-    for (int i = 0; i < playersCount; i++)
+    for (int i = 0; i < numberOfPlayers; i++)
     {
         do
         {
@@ -66,7 +64,7 @@ void inputNewPlayersNames()
 
             if (input.Length > 2)
             {
-                playersName[i] = input;
+                playerNames[i] = input;
                 break;
             }
             Console.WriteLine("\n -- Nome do jogador deve ter pelo menos 3 caracteres -- \n");
@@ -77,12 +75,12 @@ void inputNewPlayersNames()
     Console.WriteLine("\n -- Nomes atribuidos! -- \n");
 }
 
-void printPlayerCards(int player)
+void PrintPlayerCards(int player)
 {
-    int firstCardIndex = player * cardsCount;
-    int lastCardIndex = firstCardIndex + cardsCount;
+    int firstCardIndex = player * numberOfCards;
+    int lastCardIndex = firstCardIndex + numberOfCards;
 
-    for (int cardBorderUp =  0; cardBorderUp < cardsCount; cardBorderUp++)
+    for (int cardBorderUp =  0; cardBorderUp < numberOfCards; cardBorderUp++)
     {
         Console.Write("┌----┬----┬----┬----┬----┐  ");
     }
@@ -94,15 +92,15 @@ void printPlayerCards(int player)
             for (int column = 0; column < 5; column++)
             {
                 Console.Write("| ");
-                if (playersCardMask[card][line, column] == 1)
+                if (playerCardsMask[card][line, column] == 1)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write($"{playersCard[card][line, column]:00} ");
+                    Console.Write($"{playerCards[card][line, column]:00} ");
                     Console.ResetColor();
                 }
                 else
                 {
-                    Console.Write($"{playersCard[card][line, column]:00} ");
+                    Console.Write($"{playerCards[card][line, column]:00} ");
                 }
             }
             Console.Write("|  ");
@@ -110,21 +108,21 @@ void printPlayerCards(int player)
         Console.WriteLine();
         if (line < 4)
         {
-            for (int cardBorderDiv = 0; cardBorderDiv  < cardsCount; cardBorderDiv ++)
+            for (int cardBorderDiv = 0; cardBorderDiv  < numberOfCards; cardBorderDiv ++)
             {
                 Console.Write("├----┼----┼----┼----┼----┤  ");
             }
             Console.WriteLine();
         }
     }
-    for (int cardBorderDown = 0; cardBorderDown < cardsCount; cardBorderDown++)
+    for (int cardBorderDown = 0; cardBorderDown < numberOfCards; cardBorderDown++)
     {
         Console.Write("└----┴----┴----┴----┴----┘  ");
     }
     Console.WriteLine("\n");
 }
 
-int[,] generateNewCard()
+int[,] CreateCard()
 {
     int[,] card = new int[5, 5];
     int[] tempSequencialNumbers = new int[99];
@@ -151,7 +149,7 @@ int[,] generateNewCard()
     return card;
 }
 
-int[,] generateNewCardMask()
+int[,] CreateCardMask()
 {
     int[,] card = new int[5, 5];
     for (int line = 0; line < 5; line++)
@@ -164,55 +162,42 @@ int[,] generateNewCardMask()
     return card;
 }
 
-void populatePlayersCard()
+void PopulateAllPlayerCards()
 {
-    for (int player = 0; player < playersCount; player++)
+    for (int player = 0; player < numberOfPlayers; player++)
     {
-        int playerFirstCardIndex = player * cardsCount;
-        int playerLastCardIndex = playerFirstCardIndex + cardsCount;
+        int playerFirstCardIndex = player * numberOfCards;
+        int playerLastCardIndex = playerFirstCardIndex + numberOfCards;
         int playerCurrentCardIndex = 0;
 
         for (int currentCard = playerFirstCardIndex; currentCard < playerLastCardIndex; currentCard++)
         {
-            playersCard[currentCard] = generateNewCard();
-            playersCardMask[currentCard] = generateNewCardMask();
-            cardsIndex[player, playerCurrentCardIndex] = currentCard;
+            playerCards[currentCard] = CreateCard();
+            playerCardsMask[currentCard] = CreateCardMask();
+            cardsIndexList[player, playerCurrentCardIndex] = currentCard;
             playerCurrentCardIndex++;
         }
     }
 }
 
-void printNumbers()
-{
-    Console.WriteLine();
-    for (int i = 0; i < numbers.Length; i++)
-    {
-        if (numbers[i] != 0)
-        { 
-            Console.Write($"{numbers[i]:00} ");
-        }
-    }
-    Console.WriteLine();
-}
-
-void resetNumbers()
+void ResetNumbersToDraw()
 {
     for (int i = 0; i < 99; i++)
     {
-        numbers[i] = i + 1;
+        numbersToBeDrawn[i] = i + 1;
     }
 }
 
-int callUniqueNumber()
+int CallNumberFromNumbersToDraw()
 {   
     int calledNumber = 0;
     do
     {
         int randomNumber = new Random().Next(1, 99);
-        if (numbers[randomNumber] != 0)
+        if (numbersToBeDrawn[randomNumber] != 0)
         {
-            calledNumber = numbers[randomNumber];
-            numbers[randomNumber] = 0;
+            calledNumber = numbersToBeDrawn[randomNumber];
+            numbersToBeDrawn[randomNumber] = 0;
             return calledNumber;
         }
     }
@@ -220,15 +205,15 @@ int callUniqueNumber()
     return calledNumber;
 }
 
-bool checkNumberMatch(int cardIndex, int calledNumber)
+bool CheckScoreInCard(int cardIndex, int calledNumber)
 {
     for (int line = 0; line < 5; line++)
     {
         for (int column = 0; column < 5; column++)
         {
-            if (playersCard[cardIndex][line, column] == calledNumber)
+            if (playerCards[cardIndex][line, column] == calledNumber)
             {
-                playersCardMask[cardIndex][line, column] = 1;
+                playerCardsMask[cardIndex][line, column] = 1;
                 return true;
             }
         }
@@ -236,14 +221,14 @@ bool checkNumberMatch(int cardIndex, int calledNumber)
     return false;
 }
 
-bool checkPlayerLineScore(int cardIndex)
+bool CheckLineScoreInCard(int cardIndex)
 {
     for (int line = 0; line < 5; line++)
     {
         int lineScore = 0;
         for (int column = 0; column < 5; column++)
         {
-            if (playersCardMask[cardIndex][line, column] == 1)
+            if (playerCardsMask[cardIndex][line, column] == 1)
             {
                 lineScore++;
                 if (lineScore == 5)
@@ -257,14 +242,14 @@ bool checkPlayerLineScore(int cardIndex)
     return false;
 }
 
-bool checkPlayerColumnScore(int cardIndex)
+bool CheckColumnScoreInCard(int cardIndex)
 {
     for (int column = 0; column < 5; column++)
     {
         int columnScore = 0;
         for (int line = 0; line < 5; line++)
         {
-            if (playersCardMask[cardIndex][line, column] == 1)
+            if (playerCardsMask[cardIndex][line, column] == 1)
             {
                 columnScore++;
                 if (columnScore == 5)
@@ -277,13 +262,13 @@ bool checkPlayerColumnScore(int cardIndex)
     return false;
 }
 
-bool checkPlayerBingo(int cardIndex)
+bool CheckBingoInCard(int cardIndex)
 {
     for (int column = 0; column < 5; column++)
     {
         for (int line = 0; line < 5; line++)
         {
-            if (playersCardMask[cardIndex][line, column] == 0)
+            if (playerCardsMask[cardIndex][line, column] == 0)
             {
                 return false;
             }
@@ -292,102 +277,108 @@ bool checkPlayerBingo(int cardIndex)
     return true;
 }
 
-void printScoreboard()
+void PrintScoreboard()
 {
     Console.WriteLine("\n┌------------------------------------------┐");
     Console.WriteLine("| Nome do Jogador       | Pontuação        | ");
     Console.WriteLine("|------------------------------------------|");
-    for (int player = 0; player < playersCount; player++)
+    for (int player = 0; player < numberOfPlayers; player++)
     {
-        Console.WriteLine($"| {playersName[player],-22}| {playersScore[player],-17}| ");
+        Console.WriteLine($"| {playerNames[player],-22}| {playerPoints[player],-17}| ");
     }
     Console.WriteLine("└------------------------------------------┘\n");
 }
 
 // Iniciando variaveis
-inputNewPlayersNames();
-populatePlayersCard();
-resetNumbers();
+InputPlayerNames();
+PopulateAllPlayerCards();
+ResetNumbersToDraw();
 
-// Inicio do jogo
+// Entrega das cartelas para os jogadores
 Console.Clear();
-for (int player = 0; player < playersCount; player++)
+for (int player = 0; player < numberOfPlayers; player++)
 {
-    Console.WriteLine($"┌-> As cartelas de {playersName[player]} foram entregues \n|");
-    printPlayerCards(player);
+    Console.WriteLine($"┌-> As cartelas de {playerNames[player]} foram entregues \n|");
+    PrintPlayerCards(player);
     Console.WriteLine();
 }
 
+// Inicício dos rounds
 do
 {
     Console.WriteLine("\n └- Pressione qualquer tecla para sortear um número -┘ \n");
     Console.ReadKey();
     Console.Clear();
     
-    // Sorteador
-    lastCalledNumber = callUniqueNumber();
+    // Sortear números
+    lastCalledNumber = CallNumberFromNumbersToDraw();
     Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine("┌---------------------┐");
     Console.WriteLine($"| Número sortedo: {lastCalledNumber,-4}|");
     Console.WriteLine("└---------------------┘\n");
     Console.ResetColor();
 
-    for (int player = 0; player < playersCount; player++)
+    // Conferir cartelas
+    for (int player = 0; player < numberOfPlayers; player++)
     {
-        int firstCardIndex = player * cardsCount;
-        int lastCardIndex = firstCardIndex + cardsCount;
+        int firstCardIndex = player * numberOfCards;
+        int lastCardIndex = firstCardIndex + numberOfCards;
         int currentCardIndex = 0;
-        playerMatechedInRound = false;
+        scoredNumberThisRound = false;
 
         for (int card = firstCardIndex; card < lastCardIndex; card++)
         {
-            int index = cardsIndex[player, currentCardIndex];
-            match = checkNumberMatch(index, lastCalledNumber);
-            if (match)
+            int index = cardsIndexList[player, currentCardIndex];
+            score = CheckScoreInCard(index, lastCalledNumber);
+            if (score)
             {
-                playerMatechedInRound = true;
-                calledBingo = checkPlayerBingo(index);
-                lineScore = checkPlayerLineScore(index);
-                columnScore = checkPlayerColumnScore(index);
+                scoredNumberThisRound = true;
+                calledBingo = CheckBingoInCard(index);
+                lineScore = CheckLineScoreInCard(index);
+                columnScore = CheckColumnScoreInCard(index);
 
                 if (canLineScore && lineScore)
                 {
-                    Console.Write($"      ┌-> Linha completa para {playersName[player]} ");
+                    scoredLineThisRound = true;
+                    playerPoints[player] += 1;
+                    
+                    Console.Write($"      ┌-> Linha completa para {playerNames[player]} ");
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Write("(+ 1 ponto)\n");
                     Console.ResetColor();
-                    scoredLineThisRound = true;
-                    playersScore[player] += 1;
                 }
                 if (canColumnScore && columnScore)
                 {
-                    Console.Write($"      ┌-> Coluna completa para {playersName[player]} ");
+                    scoredColumnThisRound = true;
+                    playerPoints[player] += 1;
+
+                    Console.Write($"      ┌-> Coluna completa para {playerNames[player]} ");
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Write("(+ 1 ponto)\n");
                     Console.ResetColor();
-                    scoredColumnThisRound = true;
-                    playersScore[player] += 1;
                 }
                 if (calledBingo)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write($"      ┌-> Bingo!! Cartela completa para {playersName[player]} (+3 pontos) \n");
-                    Console.ResetColor();
                     bingoThisRound = true;
-                    playersScore[player] += 3;
+                    playerPoints[player] += 3;
+                    
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write($"      ┌-> Bingo!! Cartela completa para {playerNames[player]} (+3 pontos) \n");
+                    Console.ResetColor();
                 }
             }
             currentCardIndex++;
         }
-        if (playerMatechedInRound)
+
+        if (scoredNumberThisRound)
         {
-            Console.WriteLine($"┌─> {playersName[player]} teve acertos nessa rodada!\n|");
+            Console.WriteLine($"┌─> {playerNames[player]} teve acertos nessa rodada!\n|");
         }
         else
         {
-            Console.WriteLine($"┌─> {playersName[player]} não teve acertos nessa rodada\n|");
+            Console.WriteLine($"┌─> {playerNames[player]} não teve acertos nessa rodada\n|");
         }
-        printPlayerCards(player);
+        PrintPlayerCards(player);
     }
     if (scoredLineThisRound)
     {
@@ -400,8 +391,8 @@ do
     if (bingoThisRound)
     {
         Console.ReadKey();
-        Console.WriteLine($"\n ┌- Fim de jogo! Esse é o resultado final -┐");
-        printScoreboard();
+        Console.WriteLine("\n ┌- Fim de jogo! Esse é o resultado final -┐");
+        PrintScoreboard();
 
         break;
     }
@@ -411,4 +402,4 @@ while (true);
 // Interação final
 Console.ReadKey();
 Console.Clear();
-printScoreboard();
+PrintScoreboard();
