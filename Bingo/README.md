@@ -23,6 +23,6 @@ Para lidar com os dados da partida foi utilizada uma estrutura baseada em matriz
 	- Criar cartelas (ok)
 	- Popular cartelas (ok)
 - Fase de jogo:
-	- Criar sorteador de numeros (x)
+	- Criar sorteador de numeros (ok)
 	- Criar validador de linhas e colunas ()
 	- Identifica se já houve uma linha ou coluna completa
