@@ -1,6 +1,8 @@
 # Bingo!
 Jogo de Bingo para terminal com quantidade variável de jogadores e cartelas.
 
+![Preview do jogo](preview_terminal.jpeg)
+
 ## Fluxo de desenvolvimento:
 - Definição de dados necessários
 - Lógica dos sorteios e conferência das cartelas 
